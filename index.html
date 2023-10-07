@@ -104,10 +104,48 @@
             camera.updateProjectionMatrix();
         }
 
+        function onTouchStart(event) {
+            event.preventDefault();
+
+            const touch = event.touches[0];
+            isDragging = true;
+            previousMousePosition = {
+                x: touch.clientX,
+                y: touch.clientY
+            };
+        }
+
+        function onTouchMove(event) {
+            event.preventDefault();
+
+            const touch = event.touches[0];
+            const deltaMove = {
+                x: touch.clientX - previousMousePosition.x,
+                y: touch.clientY - previousMousePosition.y
+            };
+
+            moon.rotation.y += deltaMove.x * 0.01;
+            moon.rotation.x += deltaMove.y * 0.01;
+
+            previousMousePosition = {
+                x: touch.clientX,
+                y: touch.clientY
+            };
+        }
+
+        function onTouchEnd(event) {
+            event.preventDefault();
+            isDragging = false;
+        }
+
         document.addEventListener('mousedown', onDocumentMouseDown);
         document.addEventListener('mouseup', onDocumentMouseUp);
         document.addEventListener('mousemove', onDocumentMouseMove);
         document.addEventListener('wheel', onDocumentMouseWheel);
+
+        document.addEventListener('touchstart', onTouchStart);
+        document.addEventListener('touchmove', onTouchMove);
+        document.addEventListener('touchend', onTouchEnd);
 
         function animate() {
             requestAnimationFrame(animate);
