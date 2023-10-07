@@ -1,48 +1,43 @@
+
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Mars Trek</title>
-    <meta name="description" content="Trek is a NASA web-based portal for exploration of Mars. This portal showcases data collected by NASA at various landing sites and features an easy-to-use browsing tool that provides layering and viewing of high resolution data.">
-    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-    <link rel="stylesheet" href="app/resources/App.css?v=3.4.122-Mars">
-    <link rel="stylesheet" href="app/themes/theme.css?v=3.4.122-Mars">
-    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:400,100,300,700|Roboto+Condensed:400,300|Roboto+Slab:400,100,300" type="text/css">
-    <link rel="icon" type="image/png" href="jpl/favicon/favicon-32x32.png" sizes="32x32">
-    <!--<link rel="icon" type="image/png" href="jpl/favicon/android-chrome-192x192.png" sizes="192x192">-->
-    <link rel="icon" type="image/png" href="jpl/favicon/favicon-96x96.png" sizes="96x96">
-    <link rel="icon" type="image/png" href="jpl/favicon/favicon-16x16.png" sizes="16x16">
-
-    <!--<link rel="stylesheet" href="http://js.arcgis.com/3.17/esri/css/esri.css">-->
-    <!--<script src="http://js.arcgis.com/3.17/"></script>-->
-
+    <meta charset="UTF-8">
+    <title>Interactive Mars</title>
+    <style>
+        body { margin: 0; }
+    </style>
 </head>
+<body>
+    <script src="https://threejsfundamentals.org/threejs/resources/threejs/r127/build/three.min.js"></script>
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
 
-<body class="claro">
-    <div id="appLoadingDiv">
-        <div>
-            <h1 class="bigTitle">Mars Trek</h1>
-            <div class="loader col-centered"></div>
+        const geometry = new THREE.SphereGeometry(5, 32, 32);
 
-        </div>
-        <br>
+        // Load the texture
+        const textureLoader = new THREE.TextureLoader();
+        const texture = textureLoader.load('path_to_your_mars_texture.jpg'); // Replace with the path to your Mars texture
 
-        <div class="bottomLogo">
-            <img src="jpl/assets/images/nasajpl.png">
+        const material = new THREE.MeshBasicMaterial({ map: texture });
+        const sphere = new THREE.Mesh(geometry, material);
+        scene.add(sphere);
 
-        </div>
+        camera.position.z = 15;
 
-    </div>
+        function animate() {
+            requestAnimationFrame(animate);
+            sphere.rotation.x += 0.01;
+            sphere.rotation.y += 0.01;
+            renderer.render(scene, camera);
+        }
 
-    <div id="appDiv" class="hidden"></div>
+        animate();
+    </script>
 </body>
-<script type="text/javascript" djconfig="parseOnLoad: true, locale: location.hash.match(/locale=([\w\-]+)/) ? RegExp.$1 : 'en'">
-</script>
-<script src="html2canvas/html2canvas.js"></script>
-<script src="dojo/dojo.js?v=3.4.122-Mars"></script>
-<script src="app/run.js?v=3.4.122-Mars"></script>
-<script id="_fed_an_ua_tag" type="text/javascript" src="https://dap.digitalgov.gov/Universal-Federated-Analytics-Min.js?agency=NASA&subagency=MarsTrek&dclink=true&sp=search,s,q&sdor=false&exts=tif,tiff"></script>
 </html>
+
