@@ -1,0 +1,77 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Interactive Mars with Moons</title>
+    <style>
+        body { margin: 0; }
+    </style>
+</head>
+<body>
+    <script src="https://threejsfundamentals.org/threejs/resources/threejs/r127/build/three.min.js"></script>
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Create Mars
+        const marsGeometry = new THREE.SphereGeometry(5, 32, 32);
+        const marsTextureLoader = new THREE.TextureLoader();
+        const marsTexture = marsTextureLoader.load('mars.jpg');
+        const marsMaterial = new THREE.MeshBasicMaterial({ map: marsTexture });
+        const mars = new THREE.Mesh(marsGeometry, marsMaterial);
+        scene.add(mars);
+
+        // Create Phobos
+        const phobosGeometry = new THREE.SphereGeometry(0.2, 32, 32);
+        const phobosTextureLoader = new THREE.TextureLoader();
+        const phobosTexture = phobosTextureLoader.load('phobos.jpg'); // Provide the path to Phobos' texture
+        const phobosMaterial = new THREE.MeshBasicMaterial({ map: phobosTexture });
+        const phobos = new THREE.Mesh(phobosGeometry, phobosMaterial);
+        scene.add(phobos);
+
+        // Create Deimos
+        const deimosGeometry = new THREE.SphereGeometry(0.1, 32, 32);
+        const deimosTextureLoader = new THREE.TextureLoader();
+        const deimosTexture = deimosTextureLoader.load('deimos.jpg'); // Provide the path to Deimos' texture
+        const deimosMaterial = new THREE.MeshBasicMaterial({ map: deimosTexture });
+        const deimos = new THREE.Mesh(deimosGeometry, deimosMaterial);
+        scene.add(deimos);
+
+        camera.position.z = 15;
+
+        let time = 0;
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Rotate Mars
+            mars.rotation.x += 0.01;
+            mars.rotation.y += 0.01;
+
+            // Orbits of Phobos and Deimos
+            const phobosOrbitRadius = 7;
+            const deimosOrbitRadius = 9;
+            const orbitSpeed = 0.005;
+
+            // Calculate new positions
+            phobos.position.x = phobosOrbitRadius * Math.cos(time);
+            phobos.position.z = phobosOrbitRadius * Math.sin(time);
+
+            deimos.position.x = deimosOrbitRadius * Math.cos(time);
+            deimos.position.z = deimosOrbitRadius * Math.sin(time);
+
+            time += orbitSpeed;
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
+
+
