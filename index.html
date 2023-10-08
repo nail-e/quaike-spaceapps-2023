@@ -10,15 +10,24 @@
             top: 10px;
             right: 10px;
             padding: 10px 20px;
-            background-color: rgba(255, 255, 255, 0.5);
-            border: none;
-            cursor: pointer;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .quake-info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 1px solid #ccc;
             border-radius: 5px;
         }
     </style>
 </head>
 <body>
     <button class="toggle-button" onclick="toggleTexture()">Toggle Texture</button>
+    <div class="quake-info" id="quakeInfo"></div>
     <script src="https://threejsfundamentals.org/threejs/resources/threejs/r127/build/three.min.js"></script>
     <script>
         let currentTexture = '/moon.jpg';
@@ -85,7 +94,19 @@
         const moon = new THREE.Mesh(moonGeometry, moonMaterial);
         scene.add(moon);
 
-          function addEarthquake(lat, lon, mag) {
+        // Load earthquake data
+        fetch('Quakes.txt')
+            .then(response => response.text())
+            .then(data => {
+                const lines = data.split('\n');
+                for (const line of lines) {
+                    const [year, day, h, m, s, lat, lon, mag, comments] = line.split(',').map(parseFloat);
+                    addEarthquake(year, day, h, m, s, lat, lon, mag, comments);
+                }
+            })
+            .catch(error => console.error('Error loading earthquake data:', error));
+
+        function addEarthquake(year, day, h, m, s, lat, lon, mag, comments) {
             const radius = 5.2; 
             const phi = (90 - lat) * Math.PI / 180;
             const theta = (180 - lon) * Math.PI / 180;
@@ -97,13 +118,15 @@
             const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
             const quakeObject = new THREE.Mesh(geometry, material);
             quakeObject.position.set(x, y, z);
-            scene.add(quakeObject);
+            quakeObject.userData = { year, day, h, m, s, lat, lon, mag, comments }; // Store data in userData
+            moon.add(quakeObject); // Add earthquake objects as children of the moon
             earthquakeObjects.push(quakeObject);
-        }
 
-        addEarthquake(55, 48, 2.8);
-        addEarthquake(42, -24, 2);
-        // Add more earthquakes as needed
+            // Attach click event listener to quake object
+            quakeObject.addEventListener('click', () => {
+                showQuakeInfo(year, day, h, m, s, lat, lon, mag, comments);
+            });
+        }
 
         camera.position.z = 15;
 
@@ -166,7 +189,21 @@
         }
 
         animate();
+
+        function showQuakeInfo(year, day, h, m, s, lat, lon, mag, comments) {
+            const quakeInfoElement = document.getElementById('quakeInfo');
+            quakeInfoElement.innerHTML = `
+                <h3>Earthquake Information</h3>
+                <p>Year: ${year}</p>
+                <p>Day: ${day}</p>
+                <p>Time: ${h}:${m}:${s}</p>
+                <p>Latitude: ${lat}</p>
+                <p>Longitude: ${lon}</p>
+                <p>Magnitude: ${mag}</p>
+                <p>Comments: ${comments}</p>
+            `;
+        }
+
     </script>
 </body>
 </html>
-        //
