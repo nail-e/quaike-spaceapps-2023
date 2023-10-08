@@ -27,10 +27,19 @@
             max-width: 300px;
             display: none;
         }
+        .title {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 36px;
+            color: #ffffff;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Hack:wght@400&display=swap" rel="stylesheet"> 
 </head>
 <body>
+    <div class="title">RRC Moonquake Map</div>
     <button class="toggle-button" onclick="toggleTexture()">Toggle Topography</button>
     <div class="quake-info" id="quakeInfo"></div>
     <script src="https://threejsfundamentals.org/threejs/resources/threejs/r127/build/three.min.js"></script>
@@ -126,7 +135,7 @@
             const scaledZ = z * scaleFactor;
 
             const geometry = new THREE.SphereGeometry(0.05 * mag, 32, 32);
-            const material = new THREE.MeshBasicMaterial({ color: 0xb22222  });
+            const material = new THREE.MeshBasicMaterial({ color: 0xFF0000  });
             const quakeObject = new THREE.Mesh(geometry, material);
             quakeObject.position.set(scaledX, scaledY, scaledZ);
 
@@ -240,6 +249,12 @@
         }
 
         animate();
+
+       function startApp() {
+            // Hide the overlay when the "Continue" button is clicked
+            document.getElementById('overlay').style.display = 'none';
+        }
+
     </script>
 </body>
 </html>
