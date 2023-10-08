@@ -5,18 +5,44 @@
     <title>MoonQuAIke - Ram Ranch Cowboys 2023</title>
     <style>
         body { margin: 0; overflow: hidden; }
+        .toggle-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
+    <button class="toggle-button" onclick="toggleTexture()">Toggle Texture</button>
     <script src="https://threejsfundamentals.org/threejs/resources/threejs/r127/build/three.min.js"></script>
     <script>
+        let currentTexture = '/moon.jpg';
+        let earthquakeObjects = [];
+
+        function toggleTexture() {
+            if (currentTexture === 'moon.jpg') {
+                currentTexture = 'moon_ir.jpg';
+            } else {
+                currentTexture = 'moon.jpg';
+            }
+
+            const moonTexture = moonTextureLoader.load(currentTexture);
+            moon.material.map = moonTexture;
+            moon.material.needsUpdate = true;
+        }
+
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer();
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // Create star field
+        // Starfield
         const starCount = 2000;
         const starGeometry = new THREE.BufferGeometry();
         const positions = new Float32Array(starCount * 3);
@@ -31,9 +57,9 @@
             positions[i * 3 + 1] = y;
             positions[i * 3 + 2] = z;
 
-            const r = Math.random() * 0.5 + 0.5; // Random value between 0.5 and 1
-            const g = Math.random() * 0.5 + 0.5; // Random value between 0.5 and 1
-            const b = Math.random() * 0.5 + 0.5; // Random value between 0.5 and 1
+            const r = Math.random() * 0.5 + 0.5; 
+            const g = Math.random() * 0.5 + 0.5; 
+            const b = Math.random() * 0.5 + 0.5; 
 
             colors[i * 3] = r;
             colors[i * 3 + 1] = g;
@@ -51,13 +77,33 @@
         const starfield = new THREE.Points(starGeometry, starMaterial);
         scene.add(starfield);
 
-        // Create Moon
-        const moonGeometry = new THREE.SphereGeometry(5, 64, 64); // Increased segments to 64
+        // Moon
+        const moonGeometry = new THREE.SphereGeometry(5, 64, 64); 
         const moonTextureLoader = new THREE.TextureLoader();
-        const moonTexture = moonTextureLoader.load('moon.jpg');
+        const moonTexture = moonTextureLoader.load(currentTexture);
         const moonMaterial = new THREE.MeshBasicMaterial({ map: moonTexture });
         const moon = new THREE.Mesh(moonGeometry, moonMaterial);
         scene.add(moon);
+
+          function addEarthquake(lat, lon, mag) {
+            const radius = 5.2; 
+            const phi = (90 - lat) * Math.PI / 180;
+            const theta = (180 - lon) * Math.PI / 180;
+            const x = radius * Math.sin(phi) * Math.cos(theta);
+            const y = radius * Math.cos(phi);
+            const z = radius * Math.sin(phi) * Math.sin(theta);
+
+            const geometry = new THREE.SphereGeometry(0.05 * mag, 32, 32);
+            const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            const quakeObject = new THREE.Mesh(geometry, material);
+            quakeObject.position.set(x, y, z);
+            scene.add(quakeObject);
+            earthquakeObjects.push(quakeObject);
+        }
+
+        addEarthquake(55, 48, 2.8);
+        addEarthquake(42, -24, 2);
+        // Add more earthquakes as needed
 
         camera.position.z = 15;
 
@@ -87,6 +133,11 @@
 
                 moon.rotation.y += deltaMove.x * 0.01;
                 moon.rotation.x += deltaMove.y * 0.01;
+
+                // Move earthquake objects along with the moon
+                for (const object of earthquakeObjects) {
+                    object.rotation.copy(moon.rotation);
+                }
             }
 
             previousMousePosition = {
@@ -104,48 +155,10 @@
             camera.updateProjectionMatrix();
         }
 
-        function onTouchStart(event) {
-            event.preventDefault();
-
-            const touch = event.touches[0];
-            isDragging = true;
-            previousMousePosition = {
-                x: touch.clientX,
-                y: touch.clientY
-            };
-        }
-
-        function onTouchMove(event) {
-            event.preventDefault();
-
-            const touch = event.touches[0];
-            const deltaMove = {
-                x: touch.clientX - previousMousePosition.x,
-                y: touch.clientY - previousMousePosition.y
-            };
-
-            moon.rotation.y += deltaMove.x * 0.01;
-            moon.rotation.x += deltaMove.y * 0.01;
-
-            previousMousePosition = {
-                x: touch.clientX,
-                y: touch.clientY
-            };
-        }
-
-        function onTouchEnd(event) {
-            event.preventDefault();
-            isDragging = false;
-        }
-
         document.addEventListener('mousedown', onDocumentMouseDown);
         document.addEventListener('mouseup', onDocumentMouseUp);
         document.addEventListener('mousemove', onDocumentMouseMove);
         document.addEventListener('wheel', onDocumentMouseWheel);
-
-        document.addEventListener('touchstart', onTouchStart);
-        document.addEventListener('touchmove', onTouchMove);
-        document.addEventListener('touchend', onTouchEnd);
 
         function animate() {
             requestAnimationFrame(animate);
@@ -156,3 +169,4 @@
     </script>
 </body>
 </html>
+        //
