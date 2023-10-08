@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>MoonQuAIke - Ram Ranch Cowboys 2023</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <style>
-        body { margin: 0; overflow: hidden; }
+        body { margin: 0; overflow: hidden; font-family: "Hack", monospace; }
         .toggle-button {
             position: absolute;
             top: 10px;
@@ -14,6 +15,7 @@
             border: none;
             cursor: pointer;
             border-radius: 5px;
+            font-family: "Hack";
         }
         .quake-info {
             position: absolute;
@@ -26,20 +28,21 @@
             display: none;
         }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Hack:wght@400&display=swap" rel="stylesheet"> 
 </head>
 <body>
-    <button class="toggle-button" onclick="toggleTexture()">Toggle Texture</button>
+    <button class="toggle-button" onclick="toggleTexture()">Toggle Topography</button>
     <div class="quake-info" id="quakeInfo"></div>
     <script src="https://threejsfundamentals.org/threejs/resources/threejs/r127/build/three.min.js"></script>
     <script>
-        let currentTexture = '/moon.jpg';
+        let currentTexture = '/moon.webp';
         let earthquakeObjects = [];
 
         function toggleTexture() {
-            if (currentTexture === 'moon.jpg') {
-                currentTexture = 'moon_ir.jpg';
+            if (currentTexture === 'moon.webp') {
+                currentTexture = 'moon_ir.webp';
             } else {
-                currentTexture = 'moon.jpg';
+                currentTexture = 'moon.webp';
             }
 
             const moonTexture = moonTextureLoader.load(currentTexture);
@@ -108,25 +111,32 @@
             })
             .catch(error => console.error('Error loading earthquake data:', error));
 
-        
         function addEarthquake(year, day, h, m, s, lat, lon, mag, comments) {
             const radius = 5.2; 
             const phi = (90 - lat) * Math.PI / 180;
             const theta = (180 - lon) * Math.PI / 180;
             const x = radius * Math.sin(phi) * Math.cos(theta);
-            const y = radius * Math.cos(phi);
+            const y = radius * Math.cos(phi); // Adjusted the y value
             const z = radius * Math.sin(phi) * Math.sin(theta);
 
+            const moonRadius = 5;
+            const scaleFactor = moonRadius / radius;
+            const scaledX = x * scaleFactor;
+            const scaledY = y * scaleFactor;
+            const scaledZ = z * scaleFactor;
+
             const geometry = new THREE.SphereGeometry(0.05 * mag, 32, 32);
-            const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            const material = new THREE.MeshBasicMaterial({ color: 0xb22222  });
             const quakeObject = new THREE.Mesh(geometry, material);
-            quakeObject.position.set(x, y, z);
+            quakeObject.position.set(scaledX, scaledY, scaledZ);
+
             scene.add(quakeObject); // Add earthquake objects to the scene
             earthquakeObjects.push({object: quakeObject, data: {lat, lon, mag, comments}});
             quakeObject.userData = { year, day, h, m, s, lat, lon, mag, comments }; // Store data in userData
             quakeObject.onClick = () => showQuakeInfo(year, day, h, m, s, lat, lon, mag, comments);
             quakeObject.onHover = () => {}; // Implement hover functionality if needed
         }
+
 
         camera.position.z = 15;
 
