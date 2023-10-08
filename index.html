@@ -10,18 +10,20 @@
             top: 10px;
             right: 10px;
             padding: 10px 20px;
-            background-color: rgba(255, 255, 255, 0.8);
-            border: 1px solid #ccc;
+            background-color: rgba(255, 255, 255, 0.5);
+            border: none;
+            cursor: pointer;
             border-radius: 5px;
         }
         .quake-info {
             position: absolute;
             top: 10px;
             left: 10px;
-            padding: 10px;
             background-color: rgba(255, 255, 255, 0.8);
-            border: 1px solid #ccc;
+            padding: 10px;
             border-radius: 5px;
+            max-width: 300px;
+            display: none;
         }
     </style>
 </head>
@@ -106,6 +108,7 @@
             })
             .catch(error => console.error('Error loading earthquake data:', error));
 
+        
         function addEarthquake(year, day, h, m, s, lat, lon, mag, comments) {
             const radius = 5.2; 
             const phi = (90 - lat) * Math.PI / 180;
@@ -118,14 +121,11 @@
             const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
             const quakeObject = new THREE.Mesh(geometry, material);
             quakeObject.position.set(x, y, z);
+            scene.add(quakeObject); // Add earthquake objects to the scene
+            earthquakeObjects.push({object: quakeObject, data: {lat, lon, mag, comments}});
             quakeObject.userData = { year, day, h, m, s, lat, lon, mag, comments }; // Store data in userData
-            moon.add(quakeObject); // Add earthquake objects as children of the moon
-            earthquakeObjects.push(quakeObject);
-
-            // Attach click event listener to quake object
-            quakeObject.addEventListener('click', () => {
-                showQuakeInfo(year, day, h, m, s, lat, lon, mag, comments);
-            });
+            quakeObject.onClick = () => showQuakeInfo(year, day, h, m, s, lat, lon, mag, comments);
+            quakeObject.onHover = () => {}; // Implement hover functionality if needed
         }
 
         camera.position.z = 15;
@@ -146,7 +146,7 @@
         function onDocumentMouseUp(event) {
             isDragging = false;
         }
-
+        
         function onDocumentMouseMove(event) {
             if (isDragging) {
                 const deltaMove = {
@@ -154,12 +154,19 @@
                     y: event.clientY - previousMousePosition.y
                 };
 
-                moon.rotation.y += deltaMove.x * 0.01;
-                moon.rotation.x += deltaMove.y * 0.01;
+                const deltaRotationQuaternion = new THREE.Quaternion()
+                    .setFromEuler(new THREE.Euler(
+                        deltaMove.y * (Math.PI / 180),
+                        deltaMove.x * (Math.PI / 180),
+                        0,
+                        'XYZ'
+                    ));
 
-                // Move earthquake objects along with the moon
+                moon.quaternion.multiplyQuaternions(deltaRotationQuaternion, moon.quaternion);
+
+                // Update earthquake positions
                 for (const object of earthquakeObjects) {
-                    object.rotation.copy(moon.rotation);
+                    object.object.position.applyQuaternion(deltaRotationQuaternion);
                 }
             }
 
@@ -183,27 +190,46 @@
         document.addEventListener('mousemove', onDocumentMouseMove);
         document.addEventListener('wheel', onDocumentMouseWheel);
 
-        function animate() {
-            requestAnimationFrame(animate);
-            renderer.render(scene, camera);
-        }
-
-        animate();
-
         function showQuakeInfo(year, day, h, m, s, lat, lon, mag, comments) {
             const quakeInfoElement = document.getElementById('quakeInfo');
             quakeInfoElement.innerHTML = `
-                <h3>Earthquake Information</h3>
+                <h3>Moonquake Information</h3>
                 <p>Year: ${year}</p>
                 <p>Day: ${day}</p>
                 <p>Time: ${h}:${m}:${s}</p>
                 <p>Latitude: ${lat}</p>
                 <p>Longitude: ${lon}</p>
                 <p>Magnitude: ${mag}</p>
-                <p>Comments: ${comments}</p>
             `;
+            quakeInfoElement.style.display = 'block';
         }
 
+        function hideQuakeInfo() {
+            const quakeInfoElement = document.getElementById('quakeInfo');
+            quakeInfoElement.style.display = 'none';
+        }
+
+        document.addEventListener('mousedown', (event) => {
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(earthquakeObjects.map(obj => obj.object));
+            if (intersects.length > 0) {
+                const object = intersects[0].object;
+                if (object.onClick) {
+                    object.onClick();
+                }
+            }
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+
+        animate();
     </script>
 </body>
 </html>
